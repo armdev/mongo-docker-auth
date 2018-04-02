@@ -1,0 +1,42 @@
+version: '3.2'
+
+services:
+  # Name our service will be known by
+  mongo:   
+    image: mongo:3.4
+    container_name: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - ./data/db:/data/db
+    command: mongod --auth
+    networks:
+      - mpnet
+ 
+  mongoguru:
+    image: mongoguru
+    build: ./mongoguru
+    container_name: mongoguru
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    #environment:
+      #MONGO_URL: mongodb://devadmin:devadmin@mongo:27017/guruDB
+    links:
+      - mongo
+    depends_on:      
+      - mongo     
+    ports:
+      - '5008:5008'
+    volumes:
+      - /opt/auth/logs/:/opt/auth/logs
+    networks:
+      - mpnet
+
+networks:
+  mpnet:
+    driver: bridge
+
